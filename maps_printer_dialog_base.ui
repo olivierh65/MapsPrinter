@@ -53,7 +53,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Output File Format :</string>
+        <string>Output File Format</string>
        </property>
       </widget>
      </item>

@@ -104,9 +104,8 @@ class MapsPrinter:
 
         # Connect the action to the run method
         self.action.triggered.connect(self.run)
-        # self.helpAction.triggered.connect(self.showHelp)
-        self.helpAction.triggered.connect(self.help2)
-        self.dlg.buttonBox.helpRequested.connect(self.help2)
+        self.helpAction.triggered.connect(self.showHelp)
+        self.dlg.buttonBox.helpRequested.connect(self.showHelp)
         # self.dlg.buttonBox.helpRequested.connect(self.showPluginHelp)
 
         # Connect the signal to set the "select all" checkbox behaviour 
@@ -129,6 +128,7 @@ class MapsPrinter:
 
         # Connect some actions to manage dialog status while another project is opened
         self.iface.newProjectCreated.connect(self.dlg.close)
+        self.iface.projectRead.connect(self.renameDialog)        
         self.iface.projectRead.connect(self.refreshList)        
 
         # Add toolbar button and menu item0
@@ -139,11 +139,11 @@ class MapsPrinter:
     def context_menu(self):
         """ Add context menu fonctions """
         menu = QMenu(self.dlg.composerList)
-        menu.addAction(self.tr("Check selection"), self.actionCheckComposer)
-        menu.addAction(self.tr("Uncheck selection"), self.actionUncheckComposer)
+        menu.addAction(self.tr(u"Check..."), self.actionCheckComposer)
+        menu.addAction(self.tr(u"Uncheck..."), self.actionUncheckComposer)
         menu.addSeparator()
-        menu.addAction(self.tr("Show composer(s)..."),self.actionShowComposer)
-        menu.addAction(self.tr("Close composer(s)..."),self.actionHideComposer)
+        menu.addAction(self.tr(u"Open..."),self.actionShowComposer)
+        menu.addAction(self.tr(u"Close..."),self.actionHideComposer)
         menu.exec_(QCursor.pos()) 
 
     def actionCheckComposer(self):
@@ -195,7 +195,6 @@ class MapsPrinter:
         for cView in self.iface.activeComposers():
             self.getNewCompo(w, cView)
         w.sortItems()
-        self.dlg.show()
 
     def addNewCompo(self):
         pass
@@ -210,10 +209,10 @@ class MapsPrinter:
         currentComposers = []
         i,j = 0,0
 
-        if len(self.iface.activeComposers()) == 0:
+        if len(self.iface.activeComposers()) == 0 and self.dlg.isVisible():
             self.iface.messageBar().pushMessage(
                 'Maps Printer : ',
-                self.tr('dialog shut because no more print composer in the project.'),
+                self.tr(u'dialog shut because no more print composer in the project.'),
                 level = QgsMessageBar.INFO, duration = 5
                 )
             self.dlg.close()
@@ -228,7 +227,7 @@ class MapsPrinter:
 
             # Erase deleted (or renamed) composers
             while j < self.dlg.composerList.count():
-                if self.dlg.composerList.item(j).text() not in currentComposers:
+                if self.dlg.composerList.item(j).text() not in currentComposers :
                     self.dlg.composerList.takeItem(j)
                 else:
                     j += 1
@@ -247,7 +246,7 @@ class MapsPrinter:
         do the same to the composers listed below 
         """
         etat = self.dlg.checkBox.checkState()
-        for rowList in range(0, self.dlg.composerList.count()):
+        for rowList in range(0, self.dlg.composerList.count()) :
             self.dlg.composerList.item(rowList).setCheckState(etat)
 
     def listCheckedComposer(self): 
@@ -285,17 +284,17 @@ class MapsPrinter:
         box.clear()
         list1 = [
             '',
-            self.tr('PDF format (*.pdf *PDF)'),
-            self.tr('JPG format (*.jpg *JPG)'),
-            self.tr('JPEG format (*.jpeg *JPEG)'),
-            self.tr('TIF format (*.tif *TIF)'),
-            self.tr('TIFF format (*.tiff *TIFF)'),
-            self.tr('PNG format (*.png *PNG)'),
-            self.tr('BMP format (*.bmp *BMP)'),
-            self.tr('ICO format (*.ico *ICO)'),
-            self.tr('PPM format (*.ppm *PPM)'),
-            self.tr('XBM format (*.xbm *XBM)'),
-            self.tr('XPM format (*.xpm *XPM)')
+            self.tr(u'PDF format (*.pdf *PDF)'),
+            self.tr(u'JPG format (*.jpg *JPG)'),
+            self.tr(u'JPEG format (*.jpeg *JPEG)'),
+            self.tr(u'TIF format (*.tif *TIF)'),
+            self.tr(u'TIFF format (*.tiff *TIFF)'),
+            self.tr(u'PNG format (*.png *PNG)'),
+            self.tr(u'BMP format (*.bmp *BMP)'),
+            self.tr(u'ICO format (*.ico *ICO)'),
+            self.tr(u'PPM format (*.ppm *PPM)'),
+            self.tr(u'XBM format (*.xbm *XBM)'),
+            self.tr(u'XPM format (*.xpm *XPM)')
             ]
 
         box.addItems(list1) 
@@ -324,7 +323,7 @@ class MapsPrinter:
         # and if there are missing values, show error message and stop execution
         if missed: 
             self.iface.messageBar().pushMessage('Maps Printer : ', 
-                self.tr('Please consider filling the mandatory field(s) outlined in red.'), 
+                self.tr(u'Please consider filling the mandatory field(s) outlined in red.'), 
                 level = QgsMessageBar.CRITICAL, 
                 duration = 5)
             return False
@@ -355,7 +354,7 @@ class MapsPrinter:
         if self.checkFilled(d) and self.checkFolder(folder):
             x = len(rowsChecked)
             i = 0
-            progress = QProgressDialog( self.tr( "Exporting maps..." ), self.tr( "Abort" ), 0, x, self.dlg )
+            progress = QProgressDialog( self.tr( u'Exporting maps...' ), self.tr( 'Abort' ), 0, x, self.dlg )
             progress.setWindowModality(Qt.WindowModal)
             progress.show()
             QApplication.setOverrideCursor( Qt.BusyCursor )
@@ -365,7 +364,7 @@ class MapsPrinter:
 
                 if title in rowsChecked :
                     progress.setValue( i )
-                    progress.setLabelText(self.tr( "Exporting maps from {}...".format(title) ))
+                    progress.setLabelText(self.tr(u'Exporting maps from {}...'.format(title) ))
                     # process input events in order to allow aborting
                     QApplication.processEvents()
                     if progress.wasCanceled():
@@ -381,15 +380,15 @@ class MapsPrinter:
             # show a successful message bar
             if i == x :
                 self.iface.messageBar().pushMessage(
-                    self.tr('Operation finished : '),
-                    self.tr('{} compositions have been exported!'.format(x)), 
+                    self.tr(u'Operation finished : '),
+                    self.tr(u'{} compositions have been exported!'.format(x)), 
                     level = QgsMessageBar.INFO, duration = 5
                     )
             # or not
             else :
                 self.iface.messageBar().pushMessage(
-                    self.tr('Operation interrupted : '),
-                    self.tr('{} compositions on {} have been exported!'.format(i, x)), 
+                    self.tr(u'Operation interrupted : '),
+                    self.tr(u'{} compositions on {} have been exported!'.format(i, x)), 
                     level = QgsMessageBar.INFO, duration = 5
                     )
 
@@ -411,10 +410,10 @@ class MapsPrinter:
             previous_mode = cView.composition().atlasMode()
             cView.composition().setAtlasMode(QgsComposition.ExportAtlas)
             if len(myAtlas.filenamePattern()) == 0:
-                QMessageBox.warning( None, self.tr( "Empty filename pattern" ),
-                    self.tr("The print composer '{}' has an empty filename pattern. A default one will be used.".format(title)), 
+                QMessageBox.warning( None, self.tr( u"Empty filename pattern" ),
+                    self.tr(u"The print composer '{}' has an empty filename pattern. A default one will be used.".format(title)), 
                     QMessageBox.Ok, QMessageBox.Ok  )
-                myAtlas.setFilenamePattern( "'{}_'||$feature".format(title) )
+                myAtlas.setFilenamePattern( u"'{}_'||$feature".format(title) )
 
             for i in range(0, myAtlas.numFeatures()):
                 myAtlas.prepareForFeature( i )
@@ -517,13 +516,18 @@ class MapsPrinter:
 
     def showHelp(self):
         """ Function that shows the help dialog """
-        self.aboutWindow = mpAboutWindow()
-
-    def help2(self):
         # help_file = os.path.join(os.path.dirname(__file__), "help/build/html", "index.html")
         # QDesktopServices.openUrl(QUrl.fromLocalFile(helpfile))
         help_file = "file:///"+ self.plugin_dir + "/help/build/html/index.html"
         QDesktopServices.openUrl(QUrl(help_file))
+
+    def renameDialog(self) :
+        # Name the dialog with the project's title or filename
+        if QgsProject.instance().title() <> '' :
+            self.dlg.setWindowTitle(u"Maps Printer - {}".format( QgsProject.instance().title()))
+        else :    
+            self.dlg.setWindowTitle(u"Maps Printer - {}".format(
+                os.path.splitext(os.path.split(QgsProject.instance().fileName())[1])[0]))
 
     def run(self):
         """ Run method that performs all the real work """
@@ -531,21 +535,16 @@ class MapsPrinter:
         if len(self.iface.activeComposers()) == 0:
             self.iface.messageBar().pushMessage(
                 'Maps Printer : ',
-                self.tr('There is currently no print composer in the project. Please create at least one before running this plugin.'), 
+                self.tr(u'There is currently no print composer in the project. Please create at least one before running this plugin.'), 
                 level = QgsMessageBar.INFO, duration = 5
                 )
             self.dlg.close()
         else:
-            # Name the dialog with the project's title or filename
-            if QgsProject.instance().title() <> '' :
-                self.dlg.setWindowTitle("Maps Printer - {}".format( QgsProject.instance().title()))
-            else :    
-                self.dlg.setWindowTitle("Maps Printer - {}".format(
-                    os.path.splitext(os.path.split(QgsProject.instance().fileName())[1])[0]))
-
+            self.renameDialog()
             # show the dialog and fill the widget the first time
             if not self.dlg.isVisible():
                 self.populateComposerList(self.dlg.composerList)
+                self.dlg.show()
             else: 
                 # if the dialog is already opened but not at top of the screen
                 # Put it at the top of all other widgets,

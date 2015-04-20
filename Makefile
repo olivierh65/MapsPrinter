@@ -24,14 +24,13 @@
 
 
 #Add iso code for any locales you want to support here (space separated)
-LOCALES = fr
+LOCALES = fr es
 
 # translation
 SOURCES = \
 	__init__.py \
 	maps_printer.py \
 	maps_printer_dialog.py \
-	mpaboutWindow.py \
 	README.html
 
 PLUGINNAME = MapsPrinter
@@ -40,7 +39,6 @@ PY_FILES = \
 	__init__.py\
 	maps_printer.py \
 	maps_printer_dialog.py \
-	mpaboutWindow.py \	
 
 EXTRAS = icon.png about.png action_refresh.png metadata.txt
 

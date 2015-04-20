@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'maps_printer_dialog_base.ui'
 #
-# Created: Sat Feb 07 21:25:34 2015
+# Created: Mon Apr 06 03:11:43 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_mapsPrinter(object):
     def setupUi(self, mapsPrinter):
         mapsPrinter.setObjectName(_fromUtf8("mapsPrinter"))
-        mapsPrinter.resize(308, 340)
+        mapsPrinter.resize(270, 340)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -54,15 +54,15 @@ class Ui_mapsPrinter(object):
         self.path.setWhatsThis(_fromUtf8(""))
         self.path.setObjectName(_fromUtf8("path"))
         self.horizontalLayout_3.addWidget(self.path)
-        self.browse = QtGui.QPushButton(mapsPrinter)
+        self.browser = QtGui.QPushButton(mapsPrinter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.browse.sizePolicy().hasHeightForWidth())
-        self.browse.setSizePolicy(sizePolicy)
-        self.browse.setMinimumSize(QtCore.QSize(100, 23))
-        self.browse.setObjectName(_fromUtf8("browse"))
-        self.horizontalLayout_3.addWidget(self.browse)
+        sizePolicy.setHeightForWidth(self.browser.sizePolicy().hasHeightForWidth())
+        self.browser.setSizePolicy(sizePolicy)
+        self.browser.setMinimumSize(QtCore.QSize(100, 23))
+        self.browser.setObjectName(_fromUtf8("browser"))
+        self.horizontalLayout_3.addWidget(self.browser)
         self.gridLayout.addLayout(self.horizontalLayout_3, 2, 0, 1, 2)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
@@ -100,7 +100,7 @@ class Ui_mapsPrinter(object):
         self.horizontalLayout.addWidget(self.exportButton)
         self.buttonBox = QtGui.QDialogButtonBox(mapsPrinter)
         self.buttonBox.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Help)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.horizontalLayout.addWidget(self.buttonBox)
         self.gridLayout.addLayout(self.horizontalLayout, 4, 0, 1, 2)
@@ -116,6 +116,14 @@ class Ui_mapsPrinter(object):
         self.updater.setIcon(icon1)
         self.updater.setObjectName(_fromUtf8("updater"))
         self.gridLayout.addWidget(self.updater, 0, 1, 1, 1)
+        self.progressBar = QtGui.QProgressBar(mapsPrinter)
+        self.progressBar.setEnabled(True)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setAlignment(QtCore.Qt.AlignCenter)
+        self.progressBar.setTextVisible(True)
+        self.progressBar.setTextDirection(QtGui.QProgressBar.TopToBottom)
+        self.progressBar.setObjectName(_fromUtf8("progressBar"))
+        self.gridLayout.addWidget(self.progressBar, 5, 0, 1, 2)
         self.composerList = QtGui.QListWidget(mapsPrinter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
@@ -129,34 +137,21 @@ class Ui_mapsPrinter(object):
         self.composerList.setAcceptDrops(True)
         self.composerList.setWhatsThis(_fromUtf8(""))
         self.composerList.setAlternatingRowColors(True)
-        self.composerList.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+        self.composerList.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.composerList.setResizeMode(QtGui.QListView.Fixed)
         self.composerList.setObjectName(_fromUtf8("composerList"))
-        self.gridLayout.addWidget(self.composerList, 1, 0, 1, 1)
-        self.progressBar = QtGui.QProgressBar(mapsPrinter)
-        self.progressBar.setEnabled(False)
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setObjectName(_fromUtf8("progressBar"))
-        self.gridLayout.addWidget(self.progressBar, 5, 0, 1, 2)
-        self.actionShowComposer = QtGui.QAction(mapsPrinter)
-        self.actionShowComposer.setShortcutContext(QtCore.Qt.WidgetShortcut)
-        self.actionShowComposer.setObjectName(_fromUtf8("actionShowComposer"))
-        self.actionCheckComposer = QtGui.QAction(mapsPrinter)
-        self.actionCheckComposer.setObjectName(_fromUtf8("actionCheckComposer"))
-        self.actionUncheckComposer = QtGui.QAction(mapsPrinter)
-        self.actionUncheckComposer.setCheckable(False)
-        self.actionUncheckComposer.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
-        self.actionUncheckComposer.setObjectName(_fromUtf8("actionUncheckComposer"))
+        self.gridLayout.addWidget(self.composerList, 1, 0, 1, 2)
 
         self.retranslateUi(mapsPrinter)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("clicked(QAbstractButton*)")), mapsPrinter.close)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), mapsPrinter.accept)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), mapsPrinter.reject)
         QtCore.QMetaObject.connectSlotsByName(mapsPrinter)
 
     def retranslateUi(self, mapsPrinter):
         mapsPrinter.setWindowTitle(_translate("mapsPrinter", "Maps Printer", None))
-        self.browse.setToolTip(_translate("mapsPrinter", "Choose the output folder", None))
-        self.browse.setText(_translate("mapsPrinter", "Br&owse...", None))
-        self.label.setText(_translate("mapsPrinter", "Output File Format :", None))
+        self.browser.setToolTip(_translate("mapsPrinter", "Choose the output folder", None))
+        self.browser.setText(_translate("mapsPrinter", "Br&owse...", None))
+        self.label.setText(_translate("mapsPrinter", "Output File Format", None))
         self.formatBox.setToolTip(_translate("mapsPrinter", "Choose the output file format", None))
         self.checkBox.setToolTip(_translate("mapsPrinter", "Select/unselect all the composers listed below", None))
         self.checkBox.setText(_translate("mapsPrinter", "Select All", None))
@@ -164,9 +159,6 @@ class Ui_mapsPrinter(object):
         self.updater.setToolTip(_translate("mapsPrinter", "Update the list below", None))
         self.updater.setText(_translate("mapsPrinter", "Update", None))
         self.composerList.setToolTip(_translate("mapsPrinter", "Check the composer(s) you want to export", None))
-        self.actionShowComposer.setText(_translate("mapsPrinter", "ShowComposer", None))
-        self.actionCheckComposer.setText(_translate("mapsPrinter", "Check composer(s)", None))
-        self.actionUncheckComposer.setText(_translate("mapsPrinter", "Uncheck composer(s)", None))
 
 
 if __name__ == "__main__":
