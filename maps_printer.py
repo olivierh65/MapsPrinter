@@ -32,11 +32,12 @@ from qgis.gui import QgsMessageBar
 # Initialize Qt resources from file resources.py
 import resources_rc
 import errno
+import tempfile
 import time
 # Import the code for the dialog
 from maps_printer_dialog import MapsPrinterDialog
 from mpaboutWindow import mpAboutWindow
-
+from maps_printer_progress import MapsPrinterProgress
 
 class MapsPrinter:
     """QGIS Plugin Implementation."""
@@ -69,6 +70,8 @@ class MapsPrinter:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = MapsPrinterDialog()
+        self.pgr = MapsPrinterProgress()
+        
         
     # noinspection PyMethodMayBeStatic
     
@@ -98,6 +101,7 @@ class MapsPrinter:
                                   self.tr('Help'), self.iface.mainWindow()
                                   )
 
+        global progress # = QProgressDialog()
         
         # Connect actions to context menu
         self.dlg.composerList.customContextMenuRequested.connect(self.context_menu)
@@ -354,41 +358,38 @@ class MapsPrinter:
         if self.checkFilled(d) and self.checkFolder(folder):
             x = len(rowsChecked)
             i = 0
-            progress = QProgressDialog( self.tr( u'Exporting maps...' ), self.tr( 'Abort' ), 0, x, self.dlg )
-            progress.setWindowModality(Qt.WindowModal)
-            progress.show()
+            self.pgr.generalBar.setMaximum( x )
+            self.pgr.show()
             QApplication.setOverrideCursor( Qt.BusyCursor )
+            # process input events in order to allow aborting
+            QCoreApplication.processEvents()
 
             for cView in self.iface.activeComposers ():
                 title = cView.composerWindow().windowTitle()
 
                 if title in rowsChecked :
-                    progress.setValue( i )
-                    progress.setLabelText(self.tr(u'Exporting maps from {}...'.format(title) ))
-                    # process input events in order to allow aborting
-                    QApplication.processEvents()
-                    if progress.wasCanceled():
-                        break
+                    # if progress.wasCanceled():
+                        # break
                     self.exportCompo(cView, ext, folder)
                     i = i + 1
-                    # progress.setValue( i )
+                    self.pgr.generalBar.setValue( i )
                     self.dlg.composerList.item(rowsChecked[title]).setCheckState(Qt.Unchecked)
-            progress.setValue(x)
+            self.pgr.generalBar.setValue(x)
             QApplication.restoreOverrideCursor()
-            # self.dlg.close()
+            self.pgr.close()
 
             # show a successful message bar
             if i == x :
                 self.iface.messageBar().pushMessage(
                     self.tr(u'Operation finished : '),
-                    self.tr(u'{} compositions have been exported!'.format(x)), 
+                    self.tr(u'Maps from {} compositions have been exported to "{}".'.format(x, folder)), 
                     level = QgsMessageBar.INFO, duration = 5
                     )
             # or not
             else :
                 self.iface.messageBar().pushMessage(
                     self.tr(u'Operation interrupted : '),
-                    self.tr(u'{} compositions on {} have been exported!'.format(i, x)), 
+                    self.tr(u'Maps from {} compositions on {} have been exported to "{}".'.format(i, x, folder)), 
                     level = QgsMessageBar.INFO, duration = 5
                     )
 
@@ -419,6 +420,16 @@ class MapsPrinter:
                 myAtlas.prepareForFeature( i )
                 current_fileName = myAtlas.currentFilename()
                 # export atlas to pdf format
+
+                # # progress.setWindowModality(Qt.WindowModal)
+                self.pgr.printinglabel.setText(self.tr(u'Exporting maps from {} ...'.format(title) ))
+                self.pgr.printBar.setMaximum (myAtlas.numFeatures())
+                self.pgr.printBar.setValue( i + 1);
+
+                # if  self.pgr.buttonBox.clicked() :
+                    # myAtlas.endRender()
+                    # break
+
                 if extension == ".pdf":
                     if myAtlas.singleFile():
                         cView.composition().beginPrintAsPDF(printer, os.path.join(location, title + ".pdf"))
@@ -432,6 +443,9 @@ class MapsPrinter:
                 # export atlas to image format
                 else:
                     self.printToRaster(cView, location, current_fileName, extension)
+
+            QApplication.restoreOverrideCursor()
+                
             myAtlas.endRender()
             painter.end()
             # set atlas mode to its original value
@@ -475,6 +489,8 @@ class MapsPrinter:
         for numpage in range(0, cView.composition().numPages()):
             # managing multiple pages in the composition
             imgOut = cView.composition().printPageAsRaster(numpage)
+            if progress.wasCanceled():
+                break
             if numpage == 0:
                 imgOut.save(os.path.join(folder, title + ext))
             else:
@@ -496,23 +512,39 @@ class MapsPrinter:
             self.dlg.path.setText(fileDialog)
 
     def checkFolder(self, outputDir):
-        """ test directory (if it exists and is writable)"""
+        """ test directory (if it exists and is writeable)"""
+        # It'd be better to find a way to check writeability in the first try...
         try:
-            os.makedirs( outputDir )
-            return True
-        except OSError as e :    
-            # if the directory already exists then ok
+            os.makedirs( outputDir )            
+        except Exception as e :    
+            # if the folder already exists then let's check it's writeable
             if e.errno == errno.EEXIST :
-                return True
-                # QMessageBox.warning( None, self.tr( "Unable to create the directory" ),
-                    # self.tr( "directory already exists{}".format(e) ), 
-                    # QMessageBox.Ok, QMessageBox.Ok  )
-            # if the directory is not writable, choose another one
-            if e.errno == errno.EACCES :
-                QMessageBox.warning( None, self.tr( "Unable to access the directory" ),
-                    self.tr( "You don't have rights to write in this folder. Please, select another folder!" ), 
+                try:
+                    testfile = tempfile.TemporaryFile(dir = outputDir)
+                    testfile.close()
+                except Exception as e:
+                    if e.errno in (errno.EACCES, errno.EPERM) :
+                        QMessageBox.warning( None, self.tr( "Unable to write in folder" ),
+                            self.tr( "You don't have rights to write in this folder. Please, select another one!" ), 
+                            QMessageBox.Ok, QMessageBox.Ok  )
+                    else :
+                        raise            
+                    self.browseDir()            
+                else : 
+                    return True
+            # if the folder doesn't exist and can't be created then choose another directory
+            elif e.errno in (errno.EACCES, errno.EPERM) :
+                QMessageBox.warning( None, self.tr( "Unable to use the directory" ),
+                    self.tr( "You don't have rights to create or use such a folder. Please, select another one!" ), 
                     QMessageBox.Ok, QMessageBox.Ok  )
+                self.browseDir()            
+            # for anything else, let user know (mind if it's worth)
+            else :
+                QMessageBox.warning( None, self.tr( u"An error occurred : " ),
+                    u"{}".format(e), QMessageBox.Ok, QMessageBox.Ok  )
                 self.browseDir()
+        else : # if it is created with no exception
+            return True
 
     def showHelp(self):
         """ Function that shows the help dialog """
@@ -532,6 +564,7 @@ class MapsPrinter:
     def run(self):
         """ Run method that performs all the real work """
         # when no composer is in the project, display a message about the lack of composers and exit
+        # self.pgr.show()
         if len(self.iface.activeComposers()) == 0:
             self.iface.messageBar().pushMessage(
                 'Maps Printer : ',
