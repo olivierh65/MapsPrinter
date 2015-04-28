@@ -31,6 +31,7 @@ SOURCES = \
 	__init__.py \
 	maps_printer.py \
 	maps_printer_dialog.py \
+	maps_printer_progressdialog.py \
 	README.html
 
 PLUGINNAME = MapsPrinter
@@ -39,6 +40,7 @@ PY_FILES = \
 	__init__.py\
 	maps_printer.py \
 	maps_printer_dialog.py \
+	maps_printer_progressdialog.py \
 
 EXTRAS = icon.png about.png action_refresh.png metadata.txt
 

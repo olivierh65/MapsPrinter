@@ -22,7 +22,10 @@ email=delazj@gmail.com
 changelog= Version 0.2 (2015-04-30)
 	- Add support of atlas enabled print composer
     - Add multiple selection
-	- Add show/hide options
+	- Add contextual options (show/hide, check/uncheck)
+	- Add progress bar to follow or abort operations
+	Version 0.1 (2014-07-30)
+	- first release
 
 # Tags are comma separated with spaces allowed
 tags = print, export, map, composer, multiple print, image, PDF
