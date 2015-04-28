@@ -358,6 +358,10 @@ class MapsPrinter:
         if self.checkFilled(d) and self.checkFolder(folder):
             x = len(rowsChecked)
             i = 0
+            """ NEED TO INIT PGR DIALOG SOMEWHERE """
+            self.pgr.generalBar.setValue( 0 )
+            self.pgr.printBar.setValue( 0 )
+            
             self.pgr.generalBar.setMaximum( x )
             self.pgr.show()
             QApplication.setOverrideCursor( Qt.BusyCursor )
@@ -405,6 +409,16 @@ class MapsPrinter:
             cView.composition().setUseAdvancedEffects( True )
 
         myAtlas = cView.composition().atlasComposition()
+        
+        # process input events in order to allow aborting
+        QCoreApplication.processEvents()
+        # set progressDialog variables
+        if myAtlas.enabled():
+            self.pgr.printBar.setMaximum (myAtlas.numFeatures())
+        else :
+            self.pgr.printBar.setMaximum (1)
+        self.pgr.printinglabel.setText(self.tr(u'Exporting maps from {} ...'.format(title) ))
+        
         # if the composition has an atlas
         if myAtlas.enabled():
             myAtlas.beginRender()
@@ -419,17 +433,10 @@ class MapsPrinter:
             for i in range(0, myAtlas.numFeatures()):
                 myAtlas.prepareForFeature( i )
                 current_fileName = myAtlas.currentFilename()
+                #show the progress
+                self.pgr.printBar.setValue( i + 1 );
+
                 # export atlas to pdf format
-
-                # # progress.setWindowModality(Qt.WindowModal)
-                self.pgr.printinglabel.setText(self.tr(u'Exporting maps from {} ...'.format(title) ))
-                self.pgr.printBar.setMaximum (myAtlas.numFeatures())
-                self.pgr.printBar.setValue( i + 1);
-
-                # if  self.pgr.buttonBox.clicked() :
-                    # myAtlas.endRender()
-                    # break
-
                 if extension == ".pdf":
                     if myAtlas.singleFile():
                         cView.composition().beginPrintAsPDF(printer, os.path.join(location, title + ".pdf"))
@@ -444,53 +451,27 @@ class MapsPrinter:
                 else:
                     self.printToRaster(cView, location, current_fileName, extension)
 
-            QApplication.restoreOverrideCursor()
-                
             myAtlas.endRender()
             painter.end()
             # set atlas mode to its original value
-            cView.composition().setAtlasMode(previous_mode )
+            cView.composition().setAtlasMode( previous_mode )
 
         # if the composition has no atlas
         else:
+            self.pgr.printBar.setValue( 0 );
             if extension == ".pdf":  
                 cView.composition().exportAsPDF(os.path.join(location, title + ".pdf" ))                        
             else:
                 self.printToRaster(cView, location, title, extension)
-
-        """
-        if extension == ".pdf":
-            printer = QPrinter()
-            painter = QPainter()
-            if myAtlas.enabled():
-                myAtlas.beginRender()
-                previous_mode = cView.composition().atlasMode()
-                cView.composition().setAtlasMode(QgsComposition.ExportAtlas)
-                if myAtlas.singleFile():
-                    cView.composition().beginPrintAsPDF(printer, os.path.join(location, title + ".pdf"))
-                    cView.composition().beginPrint(printer)
-                for i in range(0, myAtlas.numFeatures()):
-                    myAtlas.prepareForFeature( i )
-                    current_fileName = myAtlas.currentFilename()
-                    if myAtlas.singleFile():
-                        if i > 0:
-                            printer.newPage()
-                        cView.composition().doPrint( printer, painter )
-                    else:    #fonctionne
-                        cView.composition().exportAsPDF(os.path.join(location, current_fileName + ".pdf"))
-            
-        else:
-            for i in range(0, myAtlas.numFeatures()):
-                self.printToRaster(cView, location, current_fileName, extension)
-        """    
+            self.pgr.printBar.setValue( 1 );
 
     def printToRaster(self, cView, folder, title, ext):
-        """Export to image raster"""
+        """ Export to image raster """
         for numpage in range(0, cView.composition().numPages()):
             # managing multiple pages in the composition
             imgOut = cView.composition().printPageAsRaster(numpage)
-            if progress.wasCanceled():
-                break
+            # if progress.wasCanceled():
+                # break
             if numpage == 0:
                 imgOut.save(os.path.join(folder, title + ext))
             else:
