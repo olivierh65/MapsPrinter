@@ -24,8 +24,8 @@ import os.path
 
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QFileInfo, QDir, QUrl
 from PyQt4.QtGui import QAction, QIcon, QListWidgetItem, QFileDialog, QMessageBox,\
-    QPainter, QPrinter, QMenu, QProgressDialog, QCursor, QDesktopServices, QApplication, QCursor
-    #QWidget #QFrame #QListView #QAbstractItemView #QListWidget
+    QPainter, QPrinter, QMenu,  QCursor, QDesktopServices, QApplication, QCursor
+    #QWidget #QFrame #QListView #QAbstractItemView #QListWidget, QProgressDialog,
 
 from qgis.core import *
 from qgis.gui import QgsMessageBar
@@ -335,6 +335,18 @@ class MapsPrinter:
         else:
             return True
 
+    def setNewPatternFileName(self, pattern): 
+        """ a function that will ask user to enter the expression of the pattern filename
+        Will also need a check being done before parseing 
+        For v0.3"""
+        # repPattern = 
+        
+        
+        text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog', 'Enter your name:')
+        if ok:
+            pattern.setText(str(text))
+    
+    
     def saveFile(self):
         """Check if the conditions are filled to export file(s) and 
         export the checked composers to the specified file format 
@@ -347,7 +359,7 @@ class MapsPrinter:
         # get the output file format and directory
         ext = self.setFormat(self.dlg.formatBox.currentText())
         folder = self.dlg.path.text()
-        # Is there at least one composer checked, an output folder indicated and an output file format chosen?       
+        # Is there at least one composer checked, an output folder indicated and an output file format filled?       
         d = {
             (self.dlg.composerList, len(rowsChecked)), # the composer list and the number of checked composers
             (self.dlg.path, folder), # the folder box and its text
@@ -361,9 +373,12 @@ class MapsPrinter:
             """ NEED TO INIT PGR DIALOG SOMEWHERE """
             self.pgr.generalBar.setValue( 0 )
             self.pgr.printBar.setValue( 0 )
-            
+
             self.pgr.generalBar.setMaximum( x )
             self.pgr.show()
+            # QMessageBox.warning( None, self.tr( "tutu" ),
+                # self.tr( "print {}, total {}".format(self.pgr.printBar.value(), self.pgr.generalBar.value()) ), 
+                # QMessageBox.Ok, QMessageBox.Ok  )
             QApplication.setOverrideCursor( Qt.BusyCursor )
             # process input events in order to allow aborting
             QCoreApplication.processEvents()
@@ -374,10 +389,13 @@ class MapsPrinter:
                 if title in rowsChecked :
                     # if progress.wasCanceled():
                         # break
-                    self.exportCompo(cView, ext, folder)
+                    self.exportCompo(cView, ext, folder, title)
                     i = i + 1
                     self.pgr.generalBar.setValue( i )
                     self.dlg.composerList.item(rowsChecked[title]).setCheckState(Qt.Unchecked)
+            QMessageBox.warning( None, self.tr( "Unable to use the directory" ),
+                self.tr( "print {}, total {}".format(self.pgr.printBar.value(), self.pgr.generalBar.value()) ), 
+                QMessageBox.Ok, QMessageBox.Ok  )
             self.pgr.generalBar.setValue(x)
             QApplication.restoreOverrideCursor()
             self.pgr.close()
@@ -397,11 +415,11 @@ class MapsPrinter:
                     level = QgsMessageBar.INFO, duration = 5
                     )
 
-    def exportCompo(self, cView, extension, location):
+    def exportCompo(self, cView, extension, location, title):
         """ function that sets how to export files """
         printer = QPrinter()
         painter = QPainter()
-        title = cView.composerWindow().windowTitle()
+        # title = cView.composerWindow().windowTitle()
 
         if extension == ".pdf" :
             cView.composition().setUseAdvancedEffects( False )
@@ -416,7 +434,9 @@ class MapsPrinter:
         if myAtlas.enabled():
             self.pgr.printBar.setMaximum (myAtlas.numFeatures())
         else :
-            self.pgr.printBar.setMaximum (1)
+            # self.pgr.printBar.setMaximum (1)
+            self.pgr.printBar.setMaximum (cView.composition().numPages())
+        
         self.pgr.printinglabel.setText(self.tr(u'Exporting maps from {} ...'.format(title) ))
         
         # if the composition has an atlas
@@ -430,11 +450,15 @@ class MapsPrinter:
                     QMessageBox.Ok, QMessageBox.Ok  )
                 myAtlas.setFilenamePattern( u"'{}_'||$feature".format(title) )
 
+            # # process input events in order to allow aborting
+            # QCoreApplication.processEvents()
             for i in range(0, myAtlas.numFeatures()):
                 myAtlas.prepareForFeature( i )
                 current_fileName = myAtlas.currentFilename()
                 #show the progress
                 self.pgr.printBar.setValue( i + 1 );
+                # process input events in order to allow aborting
+                QCoreApplication.processEvents()
 
                 # export atlas to pdf format
                 if extension == ".pdf":
@@ -458,24 +482,31 @@ class MapsPrinter:
 
         # if the composition has no atlas
         else:
-            self.pgr.printBar.setValue( 0 );
+            self.pgr.printBar.setValue( 0 )
             if extension == ".pdf":  
-                cView.composition().exportAsPDF(os.path.join(location, title + ".pdf" ))                        
+                cView.composition().exportAsPDF(os.path.join(location, title + ".pdf" ))
+                self.pgr.printBar.setValue(self.pgr.printBar.maximum())
             else:
                 self.printToRaster(cView, location, title, extension)
-            self.pgr.printBar.setValue( 1 );
+            # self.pgr.printBar.setValue( 1 )
+            
+        # restore cursor state
+        # QApplication.restoreOverrideCursor()
+                
+             
 
-    def printToRaster(self, cView, folder, title, ext):
+    def printToRaster(self, cView, folder, name, ext):
         """ Export to image raster """
         for numpage in range(0, cView.composition().numPages()):
             # managing multiple pages in the composition
             imgOut = cView.composition().printPageAsRaster(numpage)
-            # if progress.wasCanceled():
+            # if self.pgr.rejected:
                 # break
             if numpage == 0:
-                imgOut.save(os.path.join(folder, title + ext))
+                imgOut.save(os.path.join(folder, name + ext))
             else:
-                imgOut.save(os.path.join(folder, title + "_"+ str(numpage + 1) + ext))
+                imgOut.save(os.path.join(folder, name + "_"+ str(numpage + 1) + ext))
+            self.pgr.printBar.setValue( numpage + 1 )    
 
     def browseDir(self):
         """ Open the browser so the user selects the output directory """
