@@ -9,45 +9,77 @@ Welcome to Maps Printer's documentation!
 .. toctree::
    :maxdepth: 2
 
-**Presentation** 
-............
 
-This plugin is designed for exporting in one-click several print composers into PDF or Image file formats (.JPEG, .TIFF, .PNG, .ICO ...) 
-The plugin installs a menu item (Plugins > Maps Printer) containing two items : the main button to export the print composers and the one to open this help dialog. 
-It also creates a button in the plugins toolbar to open the Maps Printer main dialog.
+Even though multiple pages and atlas options have improved print composers using and help enough to create many maps with few print composers in a project, you can still have many print composers in your project. And when comes the time to print or export them, it is not as fun as it could be. You indeed need to open each print composer, wait till it renders, fill the export options, wait till the export finishes to open the next composer. And so on...
+If you find this process long and somehow boring (and even if you do not), then Maps Printer plugin is designed for you. It offers an easy, simple and quicker way to export print composers to pdf or image (jpg, tif, png, bmp...) file format.
 
-The Maps Printer dialog offers the options to use to export many print composers simultaneously. 
-Once you have designed your print composers as you wish and are ready to print them, don't waste your time on printing them one by one. 
-Use Maps Printer plugin instead.
+Installing
+-----------------
 
-**Using Maps Printer**
-............
+There are many ways to install a QGIS plugin
 
-The main window of the plugin offers the options to use. Once opened, you get a list of all print composers available in the project. To generate file(s):
+From QGIS Desktop
+....................
+This is the easiest option.
 
-#. Check the print composer(s) you wish to export
+click on Extension menu and choose "Manage and Install plugins..."
 
-#. Choose a folder where to save the exported file(s)
+Do a research among all plugins with expression like *maps*, *print*, *composer* ...
 
-#. Select the wished format of file(s)
+Select **Maps Printer** in the filtered results and click on **Install** button.
 
-#. And press **Export**.
+From QGIS plugins repository
+..............................
 
-So easy, right?
+Maps Printer is available in the QGIS `official plugins repository <http://plugins.qgis.org/plugins/MapsPrinter/>`_.
 
-**Tips**
-............
-The "Update" button helps to add to the list new print composers that may have been created since the dialog is open. 
-It also erases those that may have been deleted or renamed.
+Select the version you wish to install according to your QGIS version and click on **Download**.
 
-**Known limitations**
-............
-In the case you have more than one print composer with the same name, Maps Printer plugin will identify only one of them and generate only one export file. So avoid giving the same name to your print composers.
-Don't expect dealing with atlas compositions (iterating on coverage layer). This plugin just exports the compositions as they are displayed at the screen in the project.
+Unzip the file and copy/paste **MapsPrinter** subfolder into your user plugin folder (\\.qgis2\\python\\plugins\\).
+
+From Maps Printer's repository
+..................................
+
+Maps Printer's code source is available on `Github <https://github.com/DelazJ/MapsPrinter/>`_.
+
+Among the existing branches, select the release version you wish to install according to your QGIS version and click on **Download ZIP**.
+
+Unzip the file and copy/paste **MapsPrinter** subfolder into your user plugin folder (\\.qgis2\\python\\plugins\\).
+
+Using Maps Printer plugin
+---------------------------
+
+Installing Maps Printer plugin provides a sub-menu in Extension menu that contains an entry to launch the plugin and another one to reach this documentation. An icon is also added to the plugin's toolbar.  
+Once you have created and set at your convenience your print composers and wish t export some of them, just click on Maps Printer icon. The following dialog is opened.
+
+.. image:: ../image/interface.png
+   :align: center
+
+   
+
+Exporting print composers
+.............................
+
+Maps Printer est une extension développée essentiellement pour faciliter l'export des composeurs vers les formats de fichier pdf ou image (jpg, jpeg, tif, tiff, png, ico...). Lorsque vous ouvrez la fenêtre de Maps Printer, le cadre au centre de la fenêtre liste l'ensemble des composeurs de votre projet. Si vous créez de nouveaux composeurs, cette liste peut être actualisée à l'aide du bouton **Mettre à jour**.
+
+To export your layouts :
+
+#. Check the print composers you wish to (either one by one or by doing a multiple selection, right click > Check)
+#. Choose a folder for the exported files
+#. Select a file format
+#. and click on "**Export**" button.
+
+Show or hide print composers
+......................................
+
+If you want to make changes in some of your print composers, you no longer need to open them one by one. Selecting them and right clicking opens a context menu from which the "Show" option will open all these print composers. Hiding many composers at once is alsopossible with the "Close" command.
+
+Tips & Tricks
+..................
+
+If a print composer is atlas enabled, this will generate an atlas while exporting, according to the options set. If you just want to export the map, you should disable atlas generation before.
+
+The "Update" button helps to add to the list new print composers that may have been created since the dialog is open. It also erases those that may have been deleted or renamed.
 
 
-Thanks for trying this plugin !
-
-Author : **Harrissou Sant-Anna / Conseil d'Architecture, d'Urbanisme et de l'Environnement du Maine-et-Loire**
-
-*Inspired by the work of Lionel Roubeyrie, Chris Crook (Contour plugin), Olivier Dalang (Live Statistics plugin) and Enrico Ferregutti (MultiPrint plugin)*
+Pugin developped by **Harrissou Sant-anna** (CAUE 49)
