@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'maps_printer_dialog_base.ui'
 #
-# Created: Tue Jul 21 01:11:45 2015
+# Created: Mon Jul 27 22:28:57 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,13 +26,13 @@ except AttributeError:
 class Ui_mapsPrinter(object):
     def setupUi(self, mapsPrinter):
         mapsPrinter.setObjectName(_fromUtf8("mapsPrinter"))
-        mapsPrinter.resize(320, 355)
+        mapsPrinter.resize(375, 355)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(mapsPrinter.sizePolicy().hasHeightForWidth())
         mapsPrinter.setSizePolicy(sizePolicy)
-        mapsPrinter.setMinimumSize(QtCore.QSize(270, 340))
+        mapsPrinter.setMinimumSize(QtCore.QSize(320, 340))
         mapsPrinter.setSizeIncrement(QtCore.QSize(0, 0))
         mapsPrinter.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         icon = QtGui.QIcon()
