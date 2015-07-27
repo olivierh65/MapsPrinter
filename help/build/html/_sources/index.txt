@@ -44,7 +44,7 @@ Maps Printer's code source is available on `Github <https://github.com/DelazJ/Ma
 
 Among the existing branches, select the release version you wish to install according to your QGIS version and click on **Download ZIP**.
 
-Unzip the file and copy/paste **MapsPrinter** subfolder into your user plugin folder (\\.qgis2\\python\\plugins\\).
+Unzip the file, rename the subfolder to **MapsPrinter** and copy/paste it into your user plugin folder (\\.qgis2\\python\\plugins\\).
 
 Using Maps Printer plugin
 ---------------------------
@@ -60,7 +60,7 @@ Once you have created and set at your convenience your print composers and wish 
 Exporting print composers
 .............................
 
-Maps Printer est une extension développée essentiellement pour faciliter l'export des composeurs vers les formats de fichier pdf ou image (jpg, jpeg, tif, tiff, png, ico...). Lorsque vous ouvrez la fenêtre de Maps Printer, le cadre au centre de la fenêtre liste l'ensemble des composeurs de votre projet. Si vous créez de nouveaux composeurs, cette liste peut être actualisée à l'aide du bouton **Mettre à jour**.
+Maps Printer's main aim is to make easier the export of print composers to pdf or image (jpg, jpeg, tif, png, ico...) file format. Launching Maps Printer opens a dialog with a frame listing all available print composers. An **Update** button is available to keep up to date this list when print composers are newly created or deleted.
 
 To export your layouts :
 
