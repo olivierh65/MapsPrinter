@@ -25,9 +25,10 @@ import sys
 import errno
 import tempfile
 
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt, QFileInfo, QDir, QUrl, QTimer, QObject, SIGNAL
-from PyQt4.QtGui import QAction, QIcon, QListWidgetItem, QFileDialog, QMessageBox, QDialogButtonBox, \
-    QPainter, QPrinter, QMenu, QProgressDialog, QCursor, QDesktopServices, QApplication
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, SIGNAL,\
+    QCoreApplication, QFileInfo, QDir, QUrl, QTimer, Qt, QObject 
+from PyQt4.QtGui import QAction, QIcon, QListWidgetItem, QFileDialog, QDialogButtonBox, \
+    QPainter, QPrinter, QMenu, QCursor, QDesktopServices, QMessageBox, QApplication
 
 from qgis.core import *
 from qgis.gui import QgsMessageBar
@@ -36,7 +37,6 @@ from qgis.gui import QgsMessageBar
 import resources_rc
 # Import the code for the dialog
 from maps_printer_dialog import MapsPrinterDialog
-from mpaboutWindow import mpAboutWindow
 
 
 class MapsPrinter:
@@ -70,10 +70,11 @@ class MapsPrinter:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = MapsPrinterDialog()
+        
         self.dlg.btnOk = self.dlg.buttonBox.button(QDialogButtonBox.Ok)
-        # self.btnClose = self.dlg.buttonBox.button(QDialogButtonBox.Close)
         self.dlg.btnOk.setText(self.tr(u'Export'))
         self.dlg.btnClose = self.dlg.buttonBox.button(QDialogButtonBox.Close)
+        
         self.arret = False
 
     # noinspection PyMethodMayBeStatic
@@ -111,23 +112,17 @@ class MapsPrinter:
         self.action.triggered.connect(self.run)
         self.helpAction.triggered.connect(self.showHelp)
         self.dlg.buttonBox.helpRequested.connect(self.showHelp)
-        # self.dlg.buttonBox.helpRequested.connect(self.showPluginHelp)
 
         self.dlg.btnOk.setText(self.tr(u'Export'))
         QObject.disconnect(self.dlg.buttonBox, SIGNAL("accepted()"), self.dlg.accept)
+        # Connect to the export button to do the real work
         self.dlg.btnOk.clicked.connect(self.saveFile)
 
         # Connect the signal to set the "select all" checkbox behaviour
         self.dlg.checkBox.clicked.connect(self.on_selectAllcbox_changed)
         self.dlg.composerList.itemChanged.connect(self.on_composercbox_changed)
 
-        # Connect to the export button to do the real work
-        # self.dlg.btnOk.clicked.connect(self.saveFile)
-        # Connect to the progress dialog button to stop export
-        # self.dlg.buttonBox.rejected.connect(self.stopProcessing)
-        # self.dlg.btnClose.clicked.connect(self.stopProcessing)
-
-        # Connect to the browser button so you can select directory
+        # Connect to the browser button to select export folder
         self.dlg.browser.clicked.connect(self.browseDir)
 
         # Connect the action to the updater button so you can update the list of composers
@@ -188,6 +183,19 @@ class MapsPrinter:
         self.iface.removePluginMenu(u'&Maps Printer', self.helpAction)
         self.iface.removeToolBarIcon(self.action)
 
+    def showHelp(self):
+        """Shows the help page."""
+
+        locale = QSettings().value('locale/userLocale')[0:2]
+        help_file = self.plugin_dir + '/help/build/html/help_{}.html'.format(locale)
+        
+        if os.path.exists(help_file):
+            QDesktopServices.openUrl(QUrl('file:///'+ help_file))
+        else:
+            QDesktopServices.openUrl(QUrl(
+                'file:///'+ self.plugin_dir + '/help/build/html/help.html')
+                )
+
     def getNewCompo(self, w, cView):
         """Function that finds new composer to be added to the list."""
 
@@ -222,8 +230,7 @@ class MapsPrinter:
         i,j = 0,0
 
         if len(self.iface.activeComposers()) == 0 and self.dlg.isVisible():
-            self.iface.messageBar().pushMessage(
-                'Maps Printer : ',
+            self.iface.messageBar().pushMessage( 'Maps Printer : ',
                 self.tr(u'dialog shut because no more print composer in the project.'),
                 level = QgsMessageBar.INFO, duration = 5
                 )
@@ -328,87 +335,15 @@ class MapsPrinter:
             f = ''
         return f
 
-    def checkFilled(self, d):
-        """Check if all the mandatory informations are filled."""
-
-        missed = []
-        for (x, y) in d:
-            if not y: # if the second value is null, 0 or empty
-                # outline the first item in red
-                x.setStyleSheet('border-style: outset; border-width: 1px; border-color: red')
-                # retrieve the missing value
-                missed.append(y)
-            else:
-                x.setStyleSheet('border-color: palette()')
-        #[missed.append(x[1]) for x in d if not x[1]]
-        # and if there are missing values, show error message and stop execution
-        if missed:
-            self.iface.messageBar().pushMessage('Maps Printer : ',
-                self.tr(u'Please consider filling the mandatory field(s) outlined in red.'),
-                level = QgsMessageBar.CRITICAL,
-                duration = 5)
-            return False
-        # otherwise let's proceed the export
-        else:
-            return True
-
-    def initGuiButtons(self):
-        """Init the GUI to follow export processes."""
-
-        # self.dlg.pageBar.setValue(0)
-        # self.dlg.pageBar.setRange(0, 100)
-        self.dlg.printBar.setValue(0)
-        self.dlg.printBar.setMaximum(len(rowsChecked))
-        self.dlg.btnOk.setEnabled(False)
-        self.dlg.btnClose.setText(self.tr(u'Cancel'))
-        QObject.disconnect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
-        self.dlg.btnClose.clicked.connect(self.stopProcessing)
-
-    # def initprintBar(self, maxVal):
-        # #maxVal corresponds to the number of composers checked
-        # self.dlg.printBar.setRange(0, maxVal)
-        # self.dlg.printBar.setValue(0)
-
-    # def composerProcessed(self):
-        # self.dlg.printBar.setValue(self.dlg.printBar.value() + 1)
-
-    # def initpageBar(self, maxVal):
-        # # maxVal corresponds to the number of pages*features according to the type of composer
-        # self.dlg.pageBar.setRange(0, maxVal)
-        # self.dlg.pageBar.setValue(0)
-        # self.dlg.printinglabel.setText(self.tr(u'Exporting {}...'.format(title)))
-
-    def pageProcessed(self):
-        """Increment the page progressbar."""
-
-        self.dlg.pageBar.setValue(self.dlg.pageBar.value() + 1)
-
-    def stopProcessing(self):
-        """Help to stop the export processing."""
-
-        self.arret = True
-
-    def restoreGui(self):
-        """Reset the GUI to its initial state."""
-
-        QTimer.singleShot(1000, lambda: self.dlg.pageBar.setValue(0))
-        self.dlg.printinglabel.setText('')
-        QApplication.restoreOverrideCursor()
-        self.dlg.btnClose.clicked.disconnect(self.stopProcessing)
-        QObject.connect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
-        self.dlg.btnClose.setText(self.tr(u'Close'))
-        self.dlg.btnOk.setEnabled(True)
-
-        self.arret = False
-
-    # def uncheckComposer(self):
-        # self.dlg.composerList.item(rowsChecked[self.title]).setCheckState(Qt.Unchecked)
-
     def browseDir(self):
         """Open the browser so the user selects the output directory."""
 
         settings = QSettings()
-        dir = settings.value('/UI/lastSaveAsImageDir')
+        if self.dlg.formatBox.currentIndex() == 1 : # if extension is pdf
+            dir = settings.value('/UI/lastSaveAsPdfFile')
+        else:
+            dir = settings.value('/UI/lastSaveAsImageDir')        
+        
         folderDialog = QFileDialog.getExistingDirectory(
             None,
             '',
@@ -461,17 +396,65 @@ class MapsPrinter:
         else: # if it is created with no exception
             return True
 
-    def showHelp(self):
-        """Shows the help dialog."""
+    def checkFilled(self, d):
+        """Check if all the mandatory informations are filled."""
 
-        locale = QSettings().value('locale/userLocale')[0:2]
-        help_file = self.plugin_dir + '/help/build/html/help_{}.html'.format(locale)
-        if os.path.exists(help_file):
-            QDesktopServices.openUrl(QUrl('file:///'+ help_file))
+        missed = []
+        for (x, y) in d:
+            if not y: # if the second value is null, 0 or empty
+                # outline the first item in red
+                x.setStyleSheet('border-style: outset; border-width: 1px; border-color: red')
+                # retrieve the missing value
+                missed.append(y)
+            else:
+                x.setStyleSheet('border-color: palette()')
+        #[missed.append(x[1]) for x in d if not x[1]]
+        # and if there are missing values, show error message and stop execution
+        if missed:
+            self.iface.messageBar().pushMessage('Maps Printer : ',
+                self.tr(u'Please consider filling the mandatory field(s) outlined in red.'),
+                level = QgsMessageBar.CRITICAL,
+                duration = 5)
+            return False
+        # otherwise let's proceed the export
         else:
-            QDesktopServices.openUrl(QUrl(
-                'file:///'+ self.plugin_dir + '/help/build/html/help.html')
-                )
+            return True
+
+    def initGuiButtons(self):
+        """Init the GUI to follow export processes."""
+
+        self.dlg.printBar.setValue(0)
+        self.dlg.printBar.setMaximum(len(rowsChecked))
+        self.dlg.btnOk.setEnabled(False)
+
+        # Connect to the Cancel button to stop export process, using the Close button
+        self.dlg.btnClose.setText(self.tr(u'Cancel'))
+        QObject.disconnect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
+        self.dlg.btnClose.clicked.connect(self.stopProcessing)
+
+    def pageProcessed(self):
+        """Increment the page progressbar."""
+
+        self.dlg.pageBar.setValue(self.dlg.pageBar.value() + 1)
+
+    def stopProcessing(self):
+        """Help to stop the export processing."""
+
+        self.arret = True
+
+    def restoreGui(self):
+        """Reset the GUI to its initial state."""
+
+        QTimer.singleShot(1000, lambda: self.dlg.pageBar.setValue(0))
+        self.dlg.printinglabel.setText('')
+        QApplication.restoreOverrideCursor()
+        # Reset buttons functions and labels
+        self.dlg.btnClose.clicked.disconnect(self.stopProcessing)
+        QObject.connect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
+        self.dlg.btnClose.setText(self.tr(u'Close'))
+        self.dlg.btnOk.setEnabled(True)
+
+        self.arret = False
 
     def msgEmptyPattern(self):
         """Display a message to tell there's no pattern filename for atlas
@@ -496,7 +479,7 @@ class MapsPrinter:
         # retrieve the selected composers list
         self.listCheckedComposer()
         # get the output file format and directory
-        ext = self.setFormat(self.dlg.formatBox.currentText())
+        extension = self.setFormat(self.dlg.formatBox.currentText())
         folder = self.dlg.path.text()
         # Are there at least one composer checked,
         # an output folder indicated and an output file format chosen?
@@ -506,7 +489,7 @@ class MapsPrinter:
             # the folder box and its text
             (self.dlg.path, folder),
             # the format list and its choice
-            (self.dlg.formatBox, ext)
+            (self.dlg.formatBox, extension)
             }
 
         # check if all the mandatory infos are filled and if ok, export
@@ -532,7 +515,7 @@ class MapsPrinter:
                     QCoreApplication.processEvents()
                     if self.arret:
                         break
-                    self.exportCompo(cView, folder, title, ext)
+                    self.exportCompo(cView, folder, title, extension)
                     i = i + 1
                     self.dlg.printBar.setValue(i)
                     self.dlg.composerList.item(
@@ -561,12 +544,15 @@ class MapsPrinter:
                     level = QgsMessageBar.INFO, duration = 5
                     )
                 # keep in memory the output folder
-                QSettings().setValue('/UI/lastSaveAsImageDir', folder)
+                if extension == '.pdf': 
+                    QSettings().setValue('/UI/lastSaveAsPdfFile', folder)
+                else:
+                    QSettings().setValue('/UI/lastSaveAsImageDir', folder)
 
             # Reset the GUI
             self.restoreGui()
 
-    def exportCompo(self, cView, location, title, extension):
+    def exportCompo(self, cView, folder, title, extension):
         """Function that sets how to export files."""
 
         printer = QPrinter()
@@ -618,20 +604,20 @@ class MapsPrinter:
                 # export atlas to pdf format
                 if extension == '.pdf':
                     if myAtlas.singleFile():
-                        cView.composition().beginPrintAsPDF(printer, os.path.join(location, title + '.pdf'))
+                        cView.composition().beginPrintAsPDF(printer, os.path.join(folder, title + '.pdf'))
                         cView.composition().beginPrint(printer)
                         printReady = painter.begin(printer)
                         if i > 0:
                             printer.newPage()
                         cView.composition().doPrint(printer, painter)
                     else:
-                        cView.composition().exportAsPDF(os.path.join(location, current_fileName + '.pdf'))
+                        cView.composition().exportAsPDF(os.path.join(folder, current_fileName + '.pdf'))
                     #increase progressbar
                     self.pageProcessed()
 
                 # export atlas to image format
                 else:
-                    self.printToRaster(cView, location, current_fileName, extension)
+                    self.printToRaster(cView, folder, current_fileName, extension)
             myAtlas.endRender()
             painter.end()
             # Reset atlas mode to its original value
@@ -640,9 +626,9 @@ class MapsPrinter:
         # if the composition has no atlas
         else:
             if extension == '.pdf':
-                cView.composition().exportAsPDF(os.path.join(location, title + '.pdf'))
+                cView.composition().exportAsPDF(os.path.join(folder, title + '.pdf'))
             else:
-                self.printToRaster(cView, location, title, extension)
+                self.printToRaster(cView, folder, title, extension)
             self.pageProcessed()
 
     def printToRaster(self, cView, folder, name, ext):
