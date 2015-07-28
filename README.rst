@@ -16,7 +16,7 @@ If you find this process long and somehow boring (and even if you do not), then 
 Installing
 -----------------
 
-There are many ways to install a QGIS plugin
+There are many ways to install a QGIS plugin.
 
 From QGIS Desktop
 ....................
