@@ -36,7 +36,7 @@ Maps Printer est disponible sur le `dépôt officiel des extensions <http://plug
 
 Cliquez sur la version de l'extension qui vous intéresse puis sur **Download**.
 
-Décompressez le fichier, renommez le sous-dossier en MapsPrinter et copiez/collez-le dans le dossier \\.qgis2\\python\\plugins\\ de votre compte utilisateur.
+Décompressez le fichier et copiez/collez le sous-dossier MapsPrinter dans le dossier plugins de votre compte utilisateur (\\.qgis2\\python\\plugins\\).
 
 Depuis le dépôt de Maps Printer
 .................................
@@ -45,7 +45,7 @@ Le code source de Maps Printer est disponible sur `Github <https://github.com/De
 
 Sélectionnez la branche correspondant à la version que vous souhaitez télécharger et cliquez sur **Download ZIP**.
 
-Décompressez le fichier et copiez/collez le sous-dossier MapsPrinter dans le dossier \\.qgis2\\python\\plugins\\ de votre compte utilisateur.
+Décompressez le fichier, renommez le sous-dossier en MapsPrinter et copiez/collez-le dans le dossier plugins de votre compte utilisateur (\\.qgis2\\python\\plugins\\).
 
 Utilisation de l'extension Maps Printer
 -----------------------------------------
