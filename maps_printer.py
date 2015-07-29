@@ -71,10 +71,6 @@ class MapsPrinter:
         # Create the dialog (after translation) and keep reference
         self.dlg = MapsPrinterDialog()
         
-        self.dlg.btnOk = self.dlg.buttonBox.button(QDialogButtonBox.Ok)
-        self.dlg.btnOk.setText(self.tr(u'Export'))
-        self.dlg.btnClose = self.dlg.buttonBox.button(QDialogButtonBox.Close)
-        
         self.arret = False
 
     # noinspection PyMethodMayBeStatic
@@ -113,10 +109,8 @@ class MapsPrinter:
         self.helpAction.triggered.connect(self.showHelp)
         self.dlg.buttonBox.helpRequested.connect(self.showHelp)
 
-        self.dlg.btnOk.setText(self.tr(u'Export'))
-        QObject.disconnect(self.dlg.buttonBox, SIGNAL("accepted()"), self.dlg.accept)
         # Connect to the export button to do the real work
-        self.dlg.btnOk.clicked.connect(self.saveFile)
+        self.dlg.exportButton.clicked.connect(self.saveFile)
 
         # Connect the signal to set the "select all" checkbox behaviour
         self.dlg.checkBox.clicked.connect(self.on_selectAllcbox_changed)
@@ -142,6 +136,11 @@ class MapsPrinter:
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu(u'&Maps Printer', self.action)
         self.iface.addPluginToMenu(u'&Maps Printer', self.helpAction)
+
+        # Hide the Cancel button at the opening
+        self.dlg.btnCancel = self.dlg.buttonBox.button(QDialogButtonBox.Cancel)
+        self.dlg.btnCancel.hide()
+        self.dlg.btnClose = self.dlg.buttonBox.button(QDialogButtonBox.Close)
 
 
     def context_menu(self):
@@ -425,13 +424,14 @@ class MapsPrinter:
 
         self.dlg.printBar.setValue(0)
         self.dlg.printBar.setMaximum(len(rowsChecked))
-        self.dlg.btnOk.setEnabled(False)
+        self.dlg.exportButton.setEnabled(False)
 
-        # Connect to the Cancel button to stop export process, using the Close button
-        self.dlg.btnClose.setText(self.tr(u'Cancel'))
+        # Activate the Cancel button to stop export process, and hide the Close button
         QObject.disconnect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
-        self.dlg.btnClose.clicked.connect(self.stopProcessing)
-
+        self.dlg.btnClose.hide()
+        self.dlg.btnCancel.show()
+        self.dlg.buttonBox.rejected.connect(self.stopProcessing)
+        # self.dlg.btnCancel.clicked.connect(self.stopProcessing)
     def pageProcessed(self):
         """Increment the page progressbar."""
 
@@ -447,13 +447,16 @@ class MapsPrinter:
 
         QTimer.singleShot(1000, lambda: self.dlg.pageBar.setValue(0))
         self.dlg.printinglabel.setText('')
-        QApplication.restoreOverrideCursor()
-        # Reset buttons functions and labels
-        self.dlg.btnClose.clicked.disconnect(self.stopProcessing)
+        
+        # Reset standardbuttons and their functions and labels
+        # self.dlg.btnCancel.clicked.disconnect(self.stopProcessing)
+        self.dlg.buttonBox.rejected.disconnect(self.stopProcessing)
         QObject.connect(self.dlg.buttonBox, SIGNAL("rejected()"), self.dlg.reject)
-        self.dlg.btnClose.setText(self.tr(u'Close'))
-        self.dlg.btnOk.setEnabled(True)
+        self.dlg.btnCancel.hide()
+        self.dlg.btnClose.show()
+        QApplication.restoreOverrideCursor()
 
+        self.dlg.exportButton.setEnabled(True)
         self.arret = False
 
     def msgEmptyPattern(self):
@@ -498,9 +501,6 @@ class MapsPrinter:
             i = 0
             # Init progressbars
             self.initGuiButtons()
-            # self.dlg.pageBar.setValue(0)
-            # self.dlg.pageBar.setMaximum(100)
-            # self.dlg.printBar.setMaximum(x)
 
             QApplication.setOverrideCursor(Qt.BusyCursor)
 
